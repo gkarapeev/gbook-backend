@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func getUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func getUsersHandler(w http.ResponseWriter, _ *http.Request, db *sql.DB) {
 	rows, err := db.Query("SELECT id, name FROM users")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
