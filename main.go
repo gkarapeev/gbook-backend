@@ -12,10 +12,11 @@ func main() {
 	db := InitDB()
 	defer db.Close()
 
-	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		getUsersHandler(w, r, db)
 	})
 
 	log.Println("Server running on :8080")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", corsMiddleware(mux))
 }
