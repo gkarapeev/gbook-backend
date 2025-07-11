@@ -7,6 +7,6 @@ RUN CGO_ENABLED=1 go build -o gbook_backend
 FROM alpine:latest
 WORKDIR /app
 COPY --from=build /app/gbook_backend .
-COPY data.db .
+COPY db/data.db db/
 EXPOSE 8080
 CMD ["./gbook_backend"]
