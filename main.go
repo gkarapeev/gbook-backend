@@ -11,7 +11,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// test
 func main() {
 	db := db.InitDB()
 	defer db.Close()
