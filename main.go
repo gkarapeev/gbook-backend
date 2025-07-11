@@ -16,6 +16,7 @@ func main() {
 	defer db.Close()
 
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetUsersHandler(w, r, db)
 	})
