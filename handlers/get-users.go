@@ -4,17 +4,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-)
 
-type User struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
+	. "this_project_id_285410/models"
+)
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.Query("SELECT id, name FROM users")
+	rows, err := db.Query("SELECT id, username FROM users")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -22,12 +19,12 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	defer rows.Close()
 
-	var users []User
+	var users []DbUser
 
 	for rows.Next() {
-		var user User
+		var user DbUser
 
-		if err := rows.Scan(&user.ID, &user.Name); err != nil {
+		if err := rows.Scan(&user.ID, &user.Userame); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
