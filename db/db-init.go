@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 )
 
 func InitDB() *sql.DB {
-	db, err := sql.Open("sqlite3", "./data.db")
+	db, err := sql.Open("sqlite3", "./db/data.db")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -17,6 +17,7 @@ func InitDB() *sql.DB {
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL
     )`)
+
 	if err != nil {
 		log.Fatal(err)
 	}

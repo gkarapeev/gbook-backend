@@ -4,19 +4,23 @@ import (
 	"log"
 	"net/http"
 
+	"this_project_id_285410/db"
+	"this_project_id_285410/handlers"
+	"this_project_id_285410/middleware"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
 // test
 func main() {
-	db := InitDB()
+	db := db.InitDB()
 	defer db.Close()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		getUsersHandler(w, r, db)
+		handlers.GetUsersHandler(w, r, db)
 	})
 
 	log.Println("Server running on :8080")
-	http.ListenAndServe(":8080", corsMiddleware(mux))
+	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
 }
