@@ -29,6 +29,10 @@ func main() {
 		handlers.LoginUser(w, r, db)
 	})
 
+	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetPostsByUser(w, r, db)
+	})
+
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
 }

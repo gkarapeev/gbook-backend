@@ -11,6 +11,12 @@ type NewUser struct {
 
 type DbUser struct {
 	BaseUser
-	ID           int
+	ID           int    `json:"id"`
 	PasswordHash string `json:"-"`
+}
+
+type Post struct {
+	ID      int    `json:"id"`
+	UserID  int    `json:"userId"`
+	Content string `json:"content"`
 }
