@@ -13,10 +13,25 @@ func InitDB() *sql.DB {
 		log.Fatal(err)
 	}
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY,
-        username TEXT NOT NULL
-    )`)
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY,
+			username TEXT NOT NULL
+		)
+	`)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS "posts" (
+			"id"	INTEGER UNIQUE,
+			"userId"	INTEGER NOT NULL,
+			"content"	TEXT NOT NULL,
+			PRIMARY KEY("id")
+		)
+	`)
 
 	if err != nil {
 		log.Fatal(err)

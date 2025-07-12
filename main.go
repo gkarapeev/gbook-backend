@@ -25,6 +25,10 @@ func main() {
 		handlers.RegisterUser(w, r, db)
 	})
 
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoginUser(w, r, db)
+	})
+
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
 }

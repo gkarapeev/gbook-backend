@@ -28,7 +28,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	hashedPassword := string(hash)
 
-	_, err = db.Exec("INSERT INTO users (username, passwordHash) VALUES (?, ?)", user.Userame, hashedPassword)
+	_, err = db.Exec("INSERT INTO users (username, passwordHash) VALUES (?, ?)", user.Username, hashedPassword)
 
 	if err != nil {
 		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)

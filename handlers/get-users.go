@@ -24,7 +24,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	for rows.Next() {
 		var user DbUser
 
-		if err := rows.Scan(&user.ID, &user.Userame); err != nil {
+		if err := rows.Scan(&user.ID, &user.Username); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
