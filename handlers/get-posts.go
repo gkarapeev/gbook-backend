@@ -26,7 +26,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id, userId, content FROM posts WHERE userId = ?", userID)
+	rows, err := db.Query("SELECT id, userId, content FROM posts WHERE userId = ? ORDER BY id DESC", userID)
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)

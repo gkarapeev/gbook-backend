@@ -33,6 +33,10 @@ func main() {
 		handlers.GetPostsByUser(w, r, db)
 	})
 
+	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreatePost(w, r, db)
+	})
+
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
 }
