@@ -17,8 +17,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetUsersHandler(w, r, db)
+	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetRegistry(w, r, db)
 	})
 
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {

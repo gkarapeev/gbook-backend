@@ -8,7 +8,7 @@ import (
 	. "this_project_id_285410/models"
 )
 
-func GetUsersHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func GetRegistry(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
 	rows, err := db.Query("SELECT id, username FROM users")
