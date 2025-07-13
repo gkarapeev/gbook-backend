@@ -26,7 +26,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id, userId, content FROM posts WHERE userId = ? ORDER BY id DESC", userID)
+	rows, err := db.Query("SELECT id, authorId, content FROM posts WHERE hostId = ? ORDER BY id DESC", userID)
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
@@ -35,17 +35,36 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	defer rows.Close()
 
-	var posts []Post
+	var posts []PostWithAuthor
 
 	for rows.Next() {
-		var post Post
+		var postID, authorID int
+		var content string
 
-		if err := rows.Scan(&post.ID, &post.UserID, &post.Content); err != nil {
+		if err := rows.Scan(&postID, &authorID, &content); err != nil {
 			http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		posts = append(posts, post)
+		var user DbUser
+
+		userRow := db.QueryRow("SELECT id, userName FROM users WHERE id = ?", authorID)
+
+		if err := userRow.Scan(&user.ID, &user.Username); err != nil {
+			http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		postWithAuthor := PostWithAuthor{
+			Post: Post{
+				ID:       postID,
+				HostID:   userID,
+				AuthorID: authorID,
+				Content:  content,
+			},
+			Author: user,
+		}
+		posts = append(posts, postWithAuthor)
 	}
 
 	json.NewEncoder(w).Encode(posts)

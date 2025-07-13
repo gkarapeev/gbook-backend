@@ -22,12 +22,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	if post.UserID == 0 || post.Content == "" {
-		http.Error(w, "Missing userId or content", http.StatusBadRequest)
+	if post.Content == "" {
+		http.Error(w, "Missing content", http.StatusBadRequest)
 		return
 	}
 
-	result, err := db.Exec("INSERT INTO posts (userId, content) VALUES (?, ?)", post.UserID, post.Content)
+	result, err := db.Exec("INSERT INTO posts (authorId, hostId, content) VALUES (?, ?, ?)", post.AuthorID, post.HostID, post.Content)
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)

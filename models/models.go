@@ -16,7 +16,13 @@ type DbUser struct {
 }
 
 type Post struct {
-	ID      int    `json:"id"`
-	UserID  int    `json:"userId"`
-	Content string `json:"content"`
+	ID       int    `json:"id"`
+	HostID   int    `json:"hostId"`
+	AuthorID int    `json:"authorId"`
+	Content  string `json:"content"`
+}
+
+type PostWithAuthor struct {
+	Post
+	Author DbUser `json:"author"`
 }
