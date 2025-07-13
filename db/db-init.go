@@ -27,7 +27,8 @@ func InitDB() *sql.DB {
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS "posts" (
 			"id"	INTEGER UNIQUE,
-			"userId"	INTEGER NOT NULL,
+			"hostId"	INTEGER NOT NULL,
+			"authorId"	INTEGER NOT NULL,
 			"content"	TEXT NOT NULL,
 			PRIMARY KEY("id")
 		)
