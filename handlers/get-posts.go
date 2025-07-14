@@ -26,7 +26,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id, authorId, content FROM posts WHERE hostId = ? ORDER BY id DESC", userID)
+	rows, err := db.Query("SELECT id, authorId, content, createdAt FROM posts WHERE hostId = ? ORDER BY id DESC", userID)
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
@@ -38,10 +38,10 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var posts []PostWithAuthor
 
 	for rows.Next() {
-		var postID, authorID int
+		var postID, authorID, createdAt int
 		var content string
 
-		if err := rows.Scan(&postID, &authorID, &content); err != nil {
+		if err := rows.Scan(&postID, &authorID, &content, &createdAt); err != nil {
 			http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -57,10 +57,11 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 		postWithAuthor := PostWithAuthor{
 			Post: Post{
-				ID:       postID,
-				HostID:   userID,
-				AuthorID: authorID,
-				Content:  content,
+				ID:        postID,
+				HostID:    userID,
+				AuthorID:  authorID,
+				Content:   content,
+				CreatedAt: createdAt,
 			},
 			Author: user,
 		}
