@@ -40,3 +40,8 @@ func main() {
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
 }
+
+// Next to do:
+
+// Implement JWT
+// Set http-only cookie to the request
