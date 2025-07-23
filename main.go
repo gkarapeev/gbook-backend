@@ -17,16 +17,16 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetRegistry(w, r, db)
-	})
-
 	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		handlers.RegisterUser(w, r, db)
 	})
 
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginUser(w, r, db)
+	})
+
+	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetRegistry(w, r, db)
 	})
 
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,7 @@ func main() {
 	})
 
 	log.Println("Server running on :8080")
-	http.ListenAndServe(":8080", middleware.CorsMiddleware(mux))
+	http.ListenAndServe(":8080", middleware.CorsMiddleware(middleware.AuthMiddleware(mux)))
 }
 
 // Next to do:

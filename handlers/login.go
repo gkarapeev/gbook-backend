@@ -5,6 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"time"
+
+	"os"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
+
 	. "this_project_id_285410/models"
 
 	"golang.org/x/crypto/bcrypt"
@@ -41,5 +48,38 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(user)
+	godotenv.Load()
+	jSecret := os.Getenv("JWT_SECRET")
+	if jSecret == "" {
+		http.Error(w, "JWT secret not set", http.StatusInternalServerError)
+		return
+	}
+	var jwtKey = []byte(jSecret)
+
+	expTime := time.Now().Add(time.Minute * 15)
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"exp":     expTime.Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		http.Error(w, "Could not generate token", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt",
+		Value:    tokenString,
+		Expires:  expTime,
+		HttpOnly: true,
+		Secure:   false, // set to true in production with HTTPS
+		Path:     "/",
+	})
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user":    user,
+		"expires": expTime.Unix(),
+	})
 }
