@@ -76,6 +76,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		HttpOnly: true,
 		Secure:   false, // set to true in production with HTTPS
 		Path:     "/",
+		SameSite: http.SameSiteStrictMode,
 	})
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

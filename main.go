@@ -17,31 +17,26 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/register", func(w http.ResponseWriter, r *http.Request) {
 		handlers.RegisterUser(w, r, db)
 	})
 
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginUser(w, r, db)
 	})
 
-	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/registry", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetRegistry(w, r, db)
 	})
 
-	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
 	})
 
-	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/createPost", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreatePost(w, r, db)
 	})
 
 	log.Println("Server running on :8080")
 	http.ListenAndServe(":8080", middleware.CorsMiddleware(middleware.AuthMiddleware(mux)))
 }
-
-// Next to do:
-
-// Implement JWT
-// Set http-only cookie to the request
