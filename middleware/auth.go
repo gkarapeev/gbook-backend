@@ -11,12 +11,13 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	unprotected := map[string]bool{
-		"/api/register": true,
-		"/api/login":    true,
+		"/register": true,
+		"/login":    true,
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("AuthMiddleware: Checking authentication for", r.URL.Path)
+
 		if unprotected[r.URL.Path] {
 			log.Println("Allowing", r.URL.Path)
 

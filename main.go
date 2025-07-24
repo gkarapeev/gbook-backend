@@ -17,23 +17,23 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/register", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		handlers.RegisterUser(w, r, db)
 	})
 
-	mux.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginUser(w, r, db)
 	})
 
-	mux.HandleFunc("/api/registry", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetRegistry(w, r, db)
 	})
 
-	mux.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
 	})
 
-	mux.HandleFunc("/api/createPost", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreatePost(w, r, db)
 	})
 
