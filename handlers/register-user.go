@@ -19,6 +19,17 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
+	var existingUserID int
+	err := db.QueryRow("SELECT id FROM users WHERE username = ?", user.Username).Scan(&existingUserID)
+	if err != sql.ErrNoRows {
+		if err == nil {
+			http.Error(w, "Username already taken", http.StatusConflict)
+			return
+		}
+		http.Error(w, "DB query error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 
 	if err != nil {
