@@ -21,8 +21,16 @@ func main() {
 		handlers.RegisterUser(w, r, db)
 	})
 
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LogoutUser(w, r)
+	})
+
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginUser(w, r, db)
+	})
+
+	mux.HandleFunc("/login-auto", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoginUserAuto(w, r, db)
 	})
 
 	mux.HandleFunc("/registry", func(w http.ResponseWriter, r *http.Request) {

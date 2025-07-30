@@ -11,8 +11,9 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	unprotected := map[string]bool{
-		"/register": true,
-		"/login":    true,
+		"/register":   true,
+		"/login":      true,
+		"/login-auto": true,
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
