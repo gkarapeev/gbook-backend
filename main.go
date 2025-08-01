@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"os"
+	"github.com/joho/godotenv"
+
 	"this_project_id_285410/db"
 	"this_project_id_285410/handlers"
 	"this_project_id_285410/middleware"
@@ -45,6 +48,8 @@ func main() {
 		handlers.CreatePost(w, r, db)
 	})
 
-	log.Println("Server running on :8080")
-	http.ListenAndServe(":8080", middleware.CorsMiddleware(middleware.AuthMiddleware(mux)))
+	godotenv.Load()
+	port := os.Getenv("PORT")
+	log.Println("Server running on: " + port)
+	http.ListenAndServe(":"+port, middleware.CorsMiddleware(middleware.AuthMiddleware(mux)))
 }
