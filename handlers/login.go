@@ -56,7 +56,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	var jwtKey = []byte(jSecret)
 
-	expTime := time.Now().Add(time.Minute * 15)
+	expTime := time.Now().Add(time.Minute * 45)
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
 		"exp":     expTime.Unix(),
