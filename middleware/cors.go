@@ -9,8 +9,12 @@ var allowedOrigins = []string{
 	"http://localhost:4200",
 	"http://localhost",
 	"http://localhost:80",
-	"http://gbook.lol",
-	"http://www.gbook.lol",
+	// "http://gbook.lol",
+	// "http://www.gbook.lol",
+	"https://gbook.lol",
+	"https://www.gbook.lol",
+	"http://test.gbook.lol",
+	"http://test.www.gbook.lol",
 }
 
 func CorsMiddleware(next http.Handler) http.Handler {
