@@ -4,18 +4,11 @@ import (
 	"database/sql"
 	"log"
 
-	"os"
-
-	"github.com/joho/godotenv"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func InitDB() *sql.DB {
-	godotenv.Load()
-	location := os.Getenv("DB_LOCATION")
-
-	db, err := sql.Open("sqlite3", location)
+	db, err := sql.Open("sqlite3", "./db/data.db")
 	if err != nil {
 		log.Fatal(err)
 	}
