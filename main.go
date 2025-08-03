@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"os"
+
 	"github.com/joho/godotenv"
 
 	"this_project_id_285410/db"
@@ -42,6 +43,10 @@ func main() {
 
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
+	})
+
+	mux.HandleFunc("/feed", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetFeed(w, r, db)
 	})
 
 	mux.HandleFunc("/createPost", func(w http.ResponseWriter, r *http.Request) {

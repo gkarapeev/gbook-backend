@@ -14,6 +14,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		"/register":   true,
 		"/login":      true,
 		"/login-auto": true,
+		"/logout":     true,
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

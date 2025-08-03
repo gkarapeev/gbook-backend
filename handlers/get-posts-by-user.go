@@ -35,7 +35,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	defer rows.Close()
 
-	var posts []PostWithAuthor
+	var posts []PostWithAuthorAndHost
 
 	for rows.Next() {
 		var postID, authorID, createdAt int
@@ -55,7 +55,7 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			return
 		}
 
-		postWithAuthor := PostWithAuthor{
+		postWithAuthor := PostWithAuthorAndHost{
 			Post: Post{
 				ID:        postID,
 				HostID:    userID,
