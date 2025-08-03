@@ -24,7 +24,8 @@ type Post struct {
 	UpdatedAt int    `json:"updatedAt"`
 }
 
-type PostWithAuthor struct {
+type PostWithAuthorAndHost struct {
 	Post
 	Author DbUser `json:"author"`
+	Host   DbUser `json:"host"`
 }
