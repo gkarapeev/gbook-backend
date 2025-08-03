@@ -11,7 +11,7 @@ import (
 func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.Query("SELECT id, authorId, hostId, content, createdAt FROM posts ORDER BY id DESC")
+	rows, err := db.Query("SELECT id, authorId, hostId, content, createdAt FROM posts ORDER BY id DESC LIMIT 50")
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
