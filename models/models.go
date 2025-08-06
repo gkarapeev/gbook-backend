@@ -15,6 +15,22 @@ type DbUser struct {
 	PasswordHash string `json:"-"`
 }
 
+type Comment struct {
+	ID        int    `json:"id"`
+	PostID    int    `json:"postId"`
+	AuthorID  int    `json:"authorId"`
+	Content   string `json:"content"`
+	CreatedAt int64  `json:"createdAt"`
+}
+
+type FullComment struct {
+	ID        int    `json:"id"`
+	PostID    int    `json:"postId"`
+	Content   string `json:"content"`
+	CreatedAt int64  `json:"createdAt"`
+	Author    DbUser `json:"author"`
+}
+
 type Post struct {
 	ID        int    `json:"id"`
 	HostID    int    `json:"hostId"`
@@ -24,8 +40,12 @@ type Post struct {
 	UpdatedAt int    `json:"updatedAt"`
 }
 
-type PostWithAuthorAndHost struct {
-	Post
-	Author DbUser `json:"author"`
-	Host   DbUser `json:"host"`
+type FullPost struct {
+	ID        int           `json:"id"`
+	Host      DbUser        `json:"host"`
+	Author    DbUser        `json:"author"`
+	Content   string        `json:"content"`
+	CreatedAt int           `json:"createdAt"`
+	UpdatedAt int           `json:"updatedAt"`
+	Comments  []FullComment `json:"comments"`
 }

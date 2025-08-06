@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,7 +13,7 @@ import (
 func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var user NewUser
+	var user m.NewUser
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return

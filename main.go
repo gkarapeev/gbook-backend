@@ -53,6 +53,10 @@ func main() {
 		handlers.CreatePost(w, r, db)
 	})
 
+	mux.HandleFunc("/addComment", func(w http.ResponseWriter, r *http.Request) {
+		handlers.AddComment(w, r, db)
+	})
+
 	godotenv.Load()
 	port := os.Getenv("PORT")
 	log.Println("Server running on: " + port)

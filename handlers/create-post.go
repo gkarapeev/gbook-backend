@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -17,7 +17,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	var post Post
+	var post m.Post
 	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
