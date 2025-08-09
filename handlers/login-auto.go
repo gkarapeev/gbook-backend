@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 )
 
 func LoginUserAuto(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -44,7 +44,7 @@ func LoginUserAuto(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	userID := claims["user_id"]
 
-	var user DbUser
+	var user m.DbUser
 	err = db.QueryRow("SELECT id, username FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Username)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)

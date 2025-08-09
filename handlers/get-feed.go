@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 )
 
 func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -20,7 +20,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	defer rows.Close()
 
-	var posts []PostWithAuthorAndHost
+	var posts []m.FullPost
 
 	for rows.Next() {
 		var postID, hostID, authorID, createdAt int
@@ -31,7 +31,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			return
 		}
 
-		var host DbUser
+		var host m.DbUser
 
 		hostRow := db.QueryRow("SELECT id, userName FROM users WHERE id = ?", hostID)
 
@@ -40,7 +40,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			return
 		}
 
-		var author DbUser
+		var author m.DbUser
 
 		authorRow := db.QueryRow("SELECT id, userName FROM users WHERE id = ?", authorID)
 
@@ -49,16 +49,12 @@ func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			return
 		}
 
-		postWithAuthor := PostWithAuthorAndHost{
-			Post: Post{
-				ID:        postID,
-				HostID:    hostID,
-				AuthorID:  authorID,
-				Content:   content,
-				CreatedAt: createdAt,
-			},
-			Author: author,
-			Host:   host,
+		postWithAuthor := m.FullPost{
+			ID:        postID,
+			Content:   content,
+			CreatedAt: createdAt,
+			Author:    author,
+			Host:      host,
 		}
 		posts = append(posts, postWithAuthor)
 	}

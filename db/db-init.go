@@ -9,6 +9,7 @@ import (
 
 func InitDB() *sql.DB {
 	db, err := sql.Open("sqlite3", "./db/data.db")
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,6 +32,21 @@ func InitDB() *sql.DB {
 			"authorId"	INTEGER NOT NULL,
 			"content"	TEXT NOT NULL,
 			PRIMARY KEY("id")
+		)
+	`)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS "post_comments" (
+			"id"        INTEGER PRIMARY KEY,
+			"postId"    INTEGER NOT NULL,
+			"authorId"  INTEGER NOT NULL,
+			"content"   TEXT NOT NULL,
+			"createdAt" INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+			FOREIGN KEY("postId") REFERENCES "posts"("id") ON DELETE CASCADE
 		)
 	`)
 

@@ -12,7 +12,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -20,7 +20,7 @@ import (
 func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var creds NewUser
+	var creds m.NewUser
 
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
@@ -28,7 +28,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	var storedHash string
-	var user DbUser
+	var user m.DbUser
 
 	err := db.QueryRow(
 		"SELECT id, username, passwordHash FROM users WHERE username = ?",

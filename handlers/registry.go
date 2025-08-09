@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	. "this_project_id_285410/models"
+	m "this_project_id_285410/models"
 )
 
 func GetRegistry(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -19,10 +19,10 @@ func GetRegistry(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	defer rows.Close()
 
-	var users []DbUser
+	var users []m.DbUser
 
 	for rows.Next() {
-		var user DbUser
+		var user m.DbUser
 
 		if err := rows.Scan(&user.ID, &user.Username); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
