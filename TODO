@@ -1,0 +1,1 @@
+- get rid of repeated logic for including the comments in getFeed and GetPostsByUser
