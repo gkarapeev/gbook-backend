@@ -56,7 +56,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	var jwtKey = []byte(jSecret)
 
-	expTime := time.Now().Add(time.Minute * 45)
+	expTime := time.Now().Add(time.Hour * 48)
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
 		"exp":     expTime.Unix(),
@@ -69,18 +69,23 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
+	secureFlag := true
+	if os.Getenv("COOKIE_SECURE") == "false" {
+		secureFlag = false
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "jwt",
 		Value:    tokenString,
 		Expires:  expTime,
 		HttpOnly: true,
-		Secure:   false, // set to true in production with HTTPS
+		Secure:   secureFlag,
 		Path:     "/",
 		SameSite: http.SameSiteStrictMode,
 	})
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"user":    user,
-		"expires": expTime.Unix(),
+		"expires": expTime.UnixMilli(),
 	})
 }
