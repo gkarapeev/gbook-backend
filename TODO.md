@@ -8,6 +8,7 @@
 ## Architecture
 🕙 - get rid of repeated logic for including the comments in getFeed and GetPostsByUser<br />
 🕙 - implement 3-layered architecture<br />
+🕙 - Migrate to Postgres<br />
 🕙 - implement db migrations
 
 ## Performance
