@@ -11,16 +11,46 @@ import (
 	m "this_project_id_285410/models"
 )
 
-func fetchFullPosts(db *sql.DB, hostID int) ([]m.FullPost, error) {
+func fetchFullPosts(db *sql.DB, hostID int, skip int, take int) ([]m.FullPost, error) {
 	var hostUser m.DbUser
-
 	hostRow := db.QueryRow("SELECT id, username FROM users WHERE id = ?", hostID)
-
 	if err := hostRow.Scan(&hostUser.ID, &hostUser.Username); err != nil {
 		return nil, fmt.Errorf("error fetching host user: %w", err)
 	}
 
-	rows, err := db.Query(`
+	// Step 1: Get post IDs for pagination
+	idRows, err := db.Query(`SELECT id FROM posts WHERE hostId = ? ORDER BY id DESC LIMIT ? OFFSET ?`, hostID, take, skip)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching post ids: %w", err)
+	}
+	defer idRows.Close()
+	var postIDs []int
+	for idRows.Next() {
+		var id int
+		if err := idRows.Scan(&id); err != nil {
+			return nil, fmt.Errorf("error scanning post id: %w", err)
+		}
+		postIDs = append(postIDs, id)
+	}
+	if len(postIDs) == 0 {
+		return []m.FullPost{}, nil
+	}
+
+	// Step 2: Get all post/comment data for those post IDs
+	// Build placeholders for IN clause
+	placeholders := ""
+	args := make([]interface{}, len(postIDs)+1)
+	args[0] = hostID
+
+	for i := range postIDs {
+		if i > 0 {
+			placeholders += ","
+		}
+		placeholders += "?"
+		args[i+1] = postIDs[i]
+	}
+
+	query := fmt.Sprintf(`
 		SELECT
 			p.id, p.authorId, p.content, p.createdAt,
 			pa.id, pa.username,
@@ -30,10 +60,11 @@ func fetchFullPosts(db *sql.DB, hostID int) ([]m.FullPost, error) {
 		JOIN users pa ON p.authorId = pa.id
 		LEFT JOIN post_comments c ON p.id = c.postId
 		LEFT JOIN users ca ON c.authorId = ca.id
-		WHERE p.hostId = ?
+		WHERE p.hostId = ? AND p.id IN (%s)
 		ORDER BY p.id DESC, c.createdAt DESC
-	`, hostID)
+	`, placeholders)
 
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("error executing query: %w", err)
 	}
@@ -95,6 +126,7 @@ func fetchFullPosts(db *sql.DB, hostID int) ([]m.FullPost, error) {
 	}
 
 	finalPosts := make([]m.FullPost, len(posts))
+
 	for i, post := range posts {
 		finalPosts[i] = *post
 	}
@@ -106,6 +138,9 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
 	userIDStr := r.URL.Query().Get("userId")
+	skipStr := r.URL.Query().Get("skip")
+	takeStr := r.URL.Query().Get("take")
+
 	if userIDStr == "" {
 		http.Error(w, "Missing userId parameter", http.StatusBadRequest)
 		return
@@ -117,7 +152,21 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	posts, err := fetchFullPosts(db, userID)
+	skip := 0
+	if skipStr != "" {
+		if val, err := strconv.Atoi(skipStr); err == nil && val >= 0 {
+			skip = val
+		}
+	}
+
+	take := 20
+	if takeStr != "" {
+		if val, err := strconv.Atoi(takeStr); err == nil && val > 0 {
+			take = val
+		}
+	}
+
+	posts, err := fetchFullPosts(db, userID, skip, take)
 	if err != nil {
 		log.Printf("Error in GetPostsByUser: %v", err)
 		http.Error(w, "An internal server error occurred", http.StatusInternalServerError)
