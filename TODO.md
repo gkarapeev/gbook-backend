@@ -1,13 +1,14 @@
 ## Done
-✅ - Feed endpoint <br />
-✅ - Comments on posts
+✅ - Feed endpoint<br />
+✅ - Comments on posts<br />
 ✅ - make possible to request posts by scrolling, aka from some index onwards, aka skip & take
 
 ## In Progress
 🔶 - 
 
 ## Features
-🕙 - On createPost, return entire post with full user and stuff, so that we dont have to fetch all the posts again, just to display the last one with author name.
+🕙 - On createPost, return entire post with full user and stuff, so that we dont have to fetch all the posts again, just to display the last one with author name.<br />
+🕙 - Make a get-user request that reutrns the full name and stuff by id. That will allow not fetching the entire registry just to load a profile.
 
 ## Architecture
 🕙 - get rid of repeated logic for including the comments in getFeed and GetPostsByUser<br />
