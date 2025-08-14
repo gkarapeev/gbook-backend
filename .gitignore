@@ -1,3 +1,4 @@
 dist/
 .env
 db/data.db
+content/

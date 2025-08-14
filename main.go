@@ -57,6 +57,10 @@ func main() {
 		handlers.AddComment(w, r, db)
 	})
 
+	mux.HandleFunc("/upload-image", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UploadImageHandler(w, r)
+	})
+
 	godotenv.Load()
 	port := os.Getenv("PORT")
 	log.Println("Server running on: " + port)
