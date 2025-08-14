@@ -17,7 +17,8 @@ func InitDB() *sql.DB {
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY,
-			username TEXT NOT NULL
+			username TEXT NOT NULL,
+			passwordHash TEXT NOT NULL
 		)
 	`)
 
@@ -31,6 +32,8 @@ func InitDB() *sql.DB {
 			"hostId"	INTEGER NOT NULL,
 			"authorId"	INTEGER NOT NULL,
 			"content"	TEXT NOT NULL,
+			"createdAt" INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+			"updatedAt" INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
 			PRIMARY KEY("id")
 		)
 	`)
