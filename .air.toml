@@ -1,0 +1,7 @@
+# .air.toml
+[build]
+cmd = "go build -o ./dist/this_project_id_285410.exe ."
+bin = "dist/this_project_id_285410.exe"
+tmp_dir = "dist"
+include_ext = ["go"]
+exclude_dir = ["tmp", "vendor"]
