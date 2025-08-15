@@ -94,7 +94,7 @@ func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
 		LEFT JOIN post_comments c ON p.id = c.postId
 		LEFT JOIN users ca ON c.authorId = ca.id
 		WHERE %s
-		ORDER BY p.id DESC, c.createdAt DESC
+		ORDER BY p.id DESC, c.createdAt ASC
 	`, whereClause)
 
 	return query, args
