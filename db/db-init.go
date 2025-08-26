@@ -32,6 +32,7 @@ func InitDB() *sql.DB {
 			"hostId"	INTEGER NOT NULL,
 			"authorId"	INTEGER NOT NULL,
 			"content"	TEXT NOT NULL,
+			"imagePresent"	INTEGER DEFAULT 0,
 			"createdAt" INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
 			"updatedAt" INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
 			PRIMARY KEY("id")

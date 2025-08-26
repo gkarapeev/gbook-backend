@@ -94,14 +94,7 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	os.MkdirAll(destDir, 0755)
 
-	var ext string
-	if format == "png" {
-		ext = ".png"
-	} else {
-		ext = ".jpg"
-	}
-
-	filename := userId + ext
+	filename := userId + ".jpg"
 	filepath := filepath.Join(destDir, filename)
 
 	out, err := os.Create(filepath)
