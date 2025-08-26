@@ -41,6 +41,10 @@ func main() {
 		handlers.GetRegistry(w, r, db)
 	})
 
+	mux.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetUser(w, r, db)
+	})
+
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
 	})
