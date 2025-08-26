@@ -32,20 +32,22 @@ type FullComment struct {
 }
 
 type Post struct {
-	ID        int    `json:"id"`
-	HostID    int    `json:"hostId"`
-	AuthorID  int    `json:"authorId"`
-	Content   string `json:"content"`
-	CreatedAt int    `json:"createdAt"`
-	UpdatedAt int    `json:"updatedAt"`
+	ID           int    `json:"id"`
+	HostID       int    `json:"hostId"`
+	AuthorID     int    `json:"authorId"`
+	Content      string `json:"content"`
+	ImagePresent bool   `json:"imagePresent"`
+	CreatedAt    int    `json:"createdAt"`
+	UpdatedAt    int    `json:"updatedAt"`
 }
 
 type FullPost struct {
-	ID        int           `json:"id"`
-	Host      DbUser        `json:"host"`
-	Author    DbUser        `json:"author"`
-	Content   string        `json:"content"`
-	CreatedAt int           `json:"createdAt"`
-	UpdatedAt int           `json:"updatedAt"`
-	Comments  []FullComment `json:"comments"`
+	ID           int           `json:"id"`
+	Host         DbUser        `json:"host"`
+	Author       DbUser        `json:"author"`
+	Content      string        `json:"content"`
+	ImagePresent bool          `json:"imagePresent"`
+	CreatedAt    int           `json:"createdAt"`
+	UpdatedAt    int           `json:"updatedAt"`
+	Comments     []FullComment `json:"comments"`
 }

@@ -83,7 +83,7 @@ func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
 
 	query := fmt.Sprintf(`
 		SELECT
-			p.id, p.authorId, p.content, p.createdAt,
+			p.id, p.authorId, p.content, p.createdAt, p.imagePresent,
 			pa.id, pa.username,
 			p.hostId, hu.username,
 			c.id, c.postId, c.authorId, c.content, c.createdAt,
@@ -108,9 +108,10 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 		var postID, postAuthorID, postHostID, commentID, commentPostID, commentAuthorID sql.NullInt64
 		var postContent, postAuthorUsername, postHostUsername, commentContent, commentAuthorUsername sql.NullString
 		var postCreatedAt, commentCreatedAt sql.NullInt64
+		var postImagePresent sql.NullInt64
 
 		if err := rows.Scan(
-			&postID, &postAuthorID, &postContent, &postCreatedAt,
+			&postID, &postAuthorID, &postContent, &postCreatedAt, &postImagePresent,
 			&postAuthorID, &postAuthorUsername,
 			&postHostID, &postHostUsername,
 			&commentID, &commentPostID, &commentAuthorID, &commentContent, &commentCreatedAt,
@@ -133,7 +134,8 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 					ID:       int(postHostID.Int64),
 					BaseUser: m.BaseUser{Username: postHostUsername.String},
 				},
-				Comments: []m.FullComment{},
+				ImagePresent: postImagePresent.Int64 == 1,
+				Comments:     []m.FullComment{},
 			}
 			postsMap[int(postID.Int64)] = newPost
 			posts = append(posts, newPost)
