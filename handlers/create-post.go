@@ -5,15 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"image"
-	"image/jpeg"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"golang.org/x/image/draw"
+	"github.com/disintegration/imaging"
 
 	m "this_project_id_285410/models"
 )
@@ -22,6 +21,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if r.Method != http.MethodPost {
+		log.Println("Method not allowed")
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -29,6 +29,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// Parse multipart form data
 	err := r.ParseMultipartForm(10 << 20) // 10MB max memory
 	if err != nil {
+		log.Println("Invalid form data:", err)
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
@@ -39,6 +40,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	content := r.FormValue("content")
 
 	if content == "" {
+		log.Println("Missing content")
 		http.Error(w, "Missing content", http.StatusBadRequest)
 		return
 	}
@@ -68,6 +70,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	result, err := db.Exec("INSERT INTO posts (authorId, hostId, content, imagePresent, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)", post.AuthorID, post.HostID, post.Content, imagePresent, now, now)
 
 	if err != nil {
+		log.Println("DB error:", err)
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -75,6 +78,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	id, err := result.LastInsertId()
 
 	if err != nil {
+		log.Println("DB error:", err)
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -86,6 +90,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		imgDir := os.Getenv("ROOT_CONTENT_DIR") + "/post-images"
 		imgPath := imgDir + "/" + fmt.Sprintf("%d.jpg", post.ID)
 		if err := saveImage(imgPath, file); err != nil {
+			log.Println("Image save error:", err)
 			http.Error(w, "Image save error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -98,42 +103,34 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func saveImage(path string, file io.Reader) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
+		log.Println("could not create image directory:", err)
 		return fmt.Errorf("could not create image directory: %w", err)
 	}
 
 	var buf bytes.Buffer
 	_, err := io.Copy(&buf, file)
 	if err != nil {
+		log.Println("could not read image file:", err)
 		return fmt.Errorf("could not read image file: %w", err)
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(buf.Bytes()))
+	img, err := imaging.Decode(bytes.NewReader(buf.Bytes()))
 	if err != nil {
+		log.Println("file is not a valid image:", err)
 		return fmt.Errorf("file is not a valid image: %w", err)
 	}
 
-	// Resize longer side to 500px, retain proportions
-	origBounds := img.Bounds()
-	ow, oh := origBounds.Dx(), origBounds.Dy()
-	var nw, nh int
-	if ow > oh {
-		nw = 500
-		nh = int(float64(oh) * (500.0 / float64(ow)))
-	} else {
-		nh = 500
-		nw = int(float64(ow) * (500.0 / float64(oh)))
-	}
-
-	resized := image.NewRGBA(image.Rect(0, 0, nw, nh))
-	draw.CatmullRom.Scale(resized, resized.Bounds(), img, origBounds, draw.Over, nil)
+	resized := imaging.Fit(img, 500, 500, imaging.Lanczos)
 
 	out, err := os.Create(path)
 	if err != nil {
+		log.Println("could not create image file:", err)
 		return fmt.Errorf("could not create image file: %w", err)
 	}
 	defer out.Close()
-	err = jpeg.Encode(out, resized, &jpeg.Options{Quality: 90})
+	err = imaging.Encode(out, resized, imaging.JPEG)
 	if err != nil {
+		log.Println("could not encode image:", err)
 		return fmt.Errorf("could not encode image: %w", err)
 	}
 	return nil

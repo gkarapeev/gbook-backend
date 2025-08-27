@@ -11,4 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require golang.org/x/image v0.30.0
+require (
+	github.com/disintegration/imaging v1.6.2
+	golang.org/x/image v0.30.0
+)
