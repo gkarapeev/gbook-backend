@@ -114,7 +114,7 @@ func saveImage(path string, file io.Reader) error {
 		return fmt.Errorf("could not read image file: %w", err)
 	}
 
-	img, err := imaging.Decode(bytes.NewReader(buf.Bytes()))
+	img, err := imaging.Decode(bytes.NewReader(buf.Bytes()), imaging.AutoOrientation(true))
 	if err != nil {
 		log.Println("file is not a valid image:", err)
 		return fmt.Errorf("file is not a valid image: %w", err)
