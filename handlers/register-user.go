@@ -20,7 +20,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	var existingUserID int
-	err := db.QueryRow("SELECT id FROM users WHERE username = ?", user.Username).Scan(&existingUserID)
+	err := db.QueryRow("SELECT id FROM users WHERE username = $1", user.Username).Scan(&existingUserID)
 	if err != sql.ErrNoRows {
 		if err == nil {
 			http.Error(w, "Username already taken", http.StatusConflict)
@@ -39,7 +39,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	hashedPassword := string(hash)
 
-	_, err = db.Exec("INSERT INTO users (username, passwordHash) VALUES (?, ?)", user.Username, hashedPassword)
+	_, err = db.Exec("INSERT INTO users (username, password_hash) VALUES ($1, $2)", user.Username, hashedPassword)
 
 	if err != nil {
 		http.Error(w, "DB insert error: "+err.Error(), http.StatusInternalServerError)
