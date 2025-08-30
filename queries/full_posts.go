@@ -3,6 +3,7 @@ package queries
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	m "this_project_id_285410/models"
 )
@@ -62,23 +63,28 @@ func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
 }
 
 func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
-	placeholders := ""
-	args := make([]interface{}, 0, len(postIDs)+1)
+	args := []interface{}{}
+	placeholders := []string{}
 
-	for i := range postIDs {
-		if i > 0 {
-			placeholders += ","
-		}
-		placeholders += fmt.Sprintf("$%d", i+2)
-		args = append(args, postIDs[i])
+	if hostID != nil {
+		args = append(args, *hostID)
+	}
+
+	offset := 1
+	if hostID != nil {
+		offset = 2
+	}
+
+	for i, id := range postIDs {
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i+offset)) // <-- so ridiculous lol. Sorry I can't write go yet 🐿
+		args = append(args, id)
 	}
 
 	var whereClause string
 	if hostID != nil {
-		args = append([]interface{}{*hostID}, args...)
-		whereClause = fmt.Sprintf("p.host_id = $1 AND p.id IN (%s)", placeholders)
+		whereClause = fmt.Sprintf("p.host_id = $1 AND p.id IN (%s)", strings.Join(placeholders, ","))
 	} else {
-		whereClause = fmt.Sprintf("p.id IN (%s)", placeholders[1:])
+		whereClause = fmt.Sprintf("p.id IN (%s)", strings.Join(placeholders, ","))
 	}
 
 	query := fmt.Sprintf(`
