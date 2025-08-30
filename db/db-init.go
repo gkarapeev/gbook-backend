@@ -29,8 +29,8 @@ func InitDB() *sql.DB {
 			id SERIAL PRIMARY KEY,
 			username TEXT NOT NULL,
 			password_hash TEXT NOT NULL,
-			created_at TIMESTAMP NOT NULL DEFAULT now(),
-			updated_at TIMESTAMP NOT NULL DEFAULT now()
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 		)
 	`)
 
@@ -45,8 +45,8 @@ func InitDB() *sql.DB {
 			author_id INTEGER NOT NULL,
 			content TEXT NOT NULL,
 			image_present BOOLEAN DEFAULT FALSE,
-			created_at TIMESTAMP NOT NULL DEFAULT now(),
-			updated_at TIMESTAMP NOT NULL DEFAULT now()
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 		)
 	`)
 
@@ -60,8 +60,8 @@ func InitDB() *sql.DB {
 			post_id INTEGER NOT NULL,
 			author_id INTEGER NOT NULL,
 			content TEXT NOT NULL,
-			created_at TIMESTAMP NOT NULL DEFAULT now(),
-			updated_at TIMESTAMP NOT NULL DEFAULT now(),
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 			FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
 		)
 	`)

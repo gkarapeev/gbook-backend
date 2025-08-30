@@ -47,7 +47,7 @@ func LoginUserAuto(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	var userID = claims["user_id"]
 	var user m.DbUser
-	err = db.QueryRow("SELECT id, username FROM users WHERE id = ?", userID).Scan(&user.ID, &user.Username)
+	err = db.QueryRow("SELECT id, username FROM users WHERE id = $1", userID).Scan(&user.ID, &user.Username)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return

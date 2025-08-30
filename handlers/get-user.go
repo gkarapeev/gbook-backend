@@ -25,7 +25,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	var user m.DbUser
-	err := db.QueryRow("SELECT id, username FROM users WHERE id = ?", id).Scan(&user.ID, &user.Username)
+	err := db.QueryRow("SELECT id, username FROM users WHERE id = $1", id).Scan(&user.ID, &user.Username)
 
 	if err == sql.ErrNoRows {
 		http.Error(w, "User not found", http.StatusNotFound)

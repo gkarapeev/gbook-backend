@@ -31,7 +31,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var user m.DbUser
 
 	err := db.QueryRow(
-		"SELECT id, username, passwordHash FROM users WHERE username = ?",
+		"SELECT id, username, password_hash FROM users WHERE username = $1",
 		creds.Username,
 	).Scan(&user.ID, &user.Username, &storedHash)
 

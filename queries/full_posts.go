@@ -37,9 +37,9 @@ func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
 	)
 
 	if hostID != nil {
-		idRows, err = db.Query(`SELECT id FROM posts WHERE hostId = ? ORDER BY id DESC LIMIT ? OFFSET ?`, *hostID, take, skip)
+		idRows, err = db.Query(`SELECT id FROM posts WHERE host_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3`, *hostID, take, skip)
 	} else {
-		idRows, err = db.Query(`SELECT id FROM posts ORDER BY id DESC LIMIT ? OFFSET ?`, take, skip)
+		idRows, err = db.Query(`SELECT id FROM posts ORDER BY id DESC LIMIT $1 OFFSET $2`, take, skip)
 	}
 
 	if err != nil {
@@ -69,32 +69,32 @@ func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
 		if i > 0 {
 			placeholders += ","
 		}
-		placeholders += "?"
+		placeholders += fmt.Sprintf("$%d", i+2)
 		args = append(args, postIDs[i])
 	}
 
 	var whereClause string
 	if hostID != nil {
 		args = append([]interface{}{*hostID}, args...)
-		whereClause = fmt.Sprintf("p.hostId = ? AND p.id IN (%s)", placeholders)
+		whereClause = fmt.Sprintf("p.host_id = $1 AND p.id IN (%s)", placeholders)
 	} else {
-		whereClause = fmt.Sprintf("p.id IN (%s)", placeholders)
+		whereClause = fmt.Sprintf("p.id IN (%s)", placeholders[1:])
 	}
 
 	query := fmt.Sprintf(`
 		SELECT
-			p.id, p.authorId, p.content, p.createdAt, p.imagePresent,
+			p.id, p.author_id, p.content, p.created_at, p.image_present,
 			pa.id, pa.username,
-			p.hostId, hu.username,
-			c.id, c.postId, c.authorId, c.content, c.createdAt,
+			p.host_id, hu.username,
+			c.id, c.post_id, c.author_id, c.content, c.created_at,
 			ca.username
 		FROM posts p
-		JOIN users pa ON p.authorId = pa.id
-		JOIN users hu ON p.hostId = hu.id
-		LEFT JOIN post_comments c ON p.id = c.postId
-		LEFT JOIN users ca ON c.authorId = ca.id
+		JOIN users pa ON p.author_id = pa.id
+		JOIN users hu ON p.host_id = hu.id
+		LEFT JOIN post_comments c ON p.id = c.post_id
+		LEFT JOIN users ca ON c.author_id = ca.id
 		WHERE %s
-		ORDER BY p.id DESC, c.createdAt ASC
+		ORDER BY p.id DESC, c.created_at ASC
 	`, whereClause)
 
 	return query, args
@@ -107,8 +107,8 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 	for rows.Next() {
 		var postID, postAuthorID, postHostID, commentID, commentPostID, commentAuthorID sql.NullInt64
 		var postContent, postAuthorUsername, postHostUsername, commentContent, commentAuthorUsername sql.NullString
-		var postCreatedAt, commentCreatedAt sql.NullInt64
-		var postImagePresent sql.NullInt64
+		var postCreatedAt, commentCreatedAt sql.NullTime
+		var postImagePresent sql.NullBool
 
 		if err := rows.Scan(
 			&postID, &postAuthorID, &postContent, &postCreatedAt, &postImagePresent,
@@ -125,7 +125,7 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 			newPost := &m.FullPost{
 				ID:        int(postID.Int64),
 				Content:   postContent.String,
-				CreatedAt: int(postCreatedAt.Int64),
+				CreatedAt: int(postCreatedAt.Time.Unix() * 1000),
 				Author: m.DbUser{
 					ID:       int(postAuthorID.Int64),
 					BaseUser: m.BaseUser{Username: postAuthorUsername.String},
@@ -134,7 +134,7 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 					ID:       int(postHostID.Int64),
 					BaseUser: m.BaseUser{Username: postHostUsername.String},
 				},
-				ImagePresent: postImagePresent.Int64 == 1,
+				ImagePresent: postImagePresent.Bool,
 				Comments:     []m.FullComment{},
 			}
 			postsMap[int(postID.Int64)] = newPost
@@ -147,7 +147,7 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 				ID:        int(commentID.Int64),
 				PostID:    int(commentPostID.Int64),
 				Content:   commentContent.String,
-				CreatedAt: commentCreatedAt.Int64,
+				CreatedAt: commentCreatedAt.Time.Unix() * 1000,
 				Author: m.DbUser{
 					ID:       int(commentAuthorID.Int64),
 					BaseUser: m.BaseUser{Username: commentAuthorUsername.String},

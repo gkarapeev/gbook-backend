@@ -58,32 +58,24 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		fmt.Sscanf(hostID, "%d", &post.HostID)
 	}
 
-	now := int(time.Now().Unix())
+	now := time.Now()
 
 	// Check if image is present
-	imagePresent := 0
+	imagePresent := false
 	file, _, imgErr := r.FormFile("image")
 	if imgErr == nil && file != nil {
-		imagePresent = 1
+		imagePresent = true
 	}
 
-	result, err := db.Exec("INSERT INTO posts (authorId, hostId, content, imagePresent, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)", post.AuthorID, post.HostID, post.Content, imagePresent, now, now)
-
+	err = db.QueryRow(
+		"INSERT INTO posts (author_id, host_id, content, image_present, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		post.AuthorID, post.HostID, post.Content, imagePresent, now, now,
+	).Scan(&post.ID)
 	if err != nil {
 		log.Println("DB error:", err)
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	id, err := result.LastInsertId()
-
-	if err != nil {
-		log.Println("DB error:", err)
-		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	post.ID = int(id)
 
 	if file != nil {
 		defer file.Close()

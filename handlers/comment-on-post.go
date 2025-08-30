@@ -39,7 +39,7 @@ func AddComment(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	res, err := db.Exec("INSERT INTO post_comments (postId, authorId, content, createdAt) VALUES (?, ?, ?, ?)",
+	res, err := db.Exec("INSERT INTO post_comments (post_id, author_id, content, created_at) VALUES ($1, $2, $3, $4)",
 		comment.PostID, comment.AuthorID, comment.Content, time.Now().Unix())
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func AddComment(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	comment.CreatedAt = time.Now().Unix()
 
 	var author m.DbUser
-	authorRow := db.QueryRow("SELECT id, username FROM users WHERE id = ?", comment.AuthorID)
+	authorRow := db.QueryRow("SELECT id, username FROM users WHERE id = $1", comment.AuthorID)
 	if err := authorRow.Scan(&author.ID, &author.BaseUser.Username); err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("Author with ID %d not found for comment %d", comment.AuthorID, comment.ID)
