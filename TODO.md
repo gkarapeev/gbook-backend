@@ -7,6 +7,7 @@
 
 🔶 - Migrate to Postgres<br />
 🔶 - implement db migrations
+🔶 - Also enable TLS on test
 
 ## Architecture
 🕙 - implement 3-layered architecture<br />
