@@ -18,10 +18,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("AuthMiddleware: Checking authentication for", r.URL.Path)
+		log.Println("Auth: requesting ", r.URL.Path)
 
 		if unprotected[r.URL.Path] {
-			log.Println("Allowing", r.URL.Path)
+			log.Println("Auth: allowing exception ", r.URL.Path)
 
 			next.ServeHTTP(w, r)
 			return

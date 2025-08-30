@@ -6,28 +6,31 @@ import (
 )
 
 var allowedOrigins = []string{
-	"http://localhost:4200",
-	"http://localhost",
-	"http://localhost:80",
-	// "http://gbook.lol",
-	// "http://www.gbook.lol",
 	"https://gbook.lol",
 	"https://www.gbook.lol",
 	"http://test.gbook.lol",
 	"http://test.www.gbook.lol",
+	"http://localhost:4200",
+	"http://localhost",
+	"http://localhost:80",
 }
 
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		origin := r.Header.Get("Origin")
+		allowed := false
 
 		for _, o := range allowedOrigins {
-			log.Println("CORSMiddleware: Checking origin: ", origin)
 			if o == origin {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
+				allowed = true
 				break
 			}
+		}
+
+		if !allowed {
+			log.Println("CORS: Origin not allowed: ", origin)
 		}
 
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")

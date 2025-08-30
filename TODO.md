@@ -5,10 +5,11 @@
 ✅ - Make a get-user request that reutrns the full name and stuff by id. That will allow not fetching the entire registry just to load a profile.
 ✅ - get rid of repeated logic for including the comments in getFeed and GetPostsByUser<br />
 
+🔶 - Migrate to Postgres<br />
+🔶 - implement db migrations
+
 ## Architecture
 🕙 - implement 3-layered architecture<br />
-🕙 - Migrate to Postgres<br />
-🕙 - implement db migrations
 
 ## Security
 🕙 - limit size of every single inputtable field in order to prevent flooding attacks<br />
