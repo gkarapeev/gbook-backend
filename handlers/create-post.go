@@ -39,12 +39,6 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	hostID := r.FormValue("hostId")
 	content := r.FormValue("content")
 
-	if content == "" {
-		log.Println("Missing content")
-		http.Error(w, "Missing content", http.StatusBadRequest)
-		return
-	}
-
 	var post m.Post
 	post.Content = content
 
@@ -86,6 +80,12 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			http.Error(w, "Image save error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+	}
+
+	if content == "" && !imagePresent {
+		log.Println("Missing content")
+		http.Error(w, "Missing content", http.StatusBadRequest)
+		return
 	}
 
 	err = db.QueryRow(
