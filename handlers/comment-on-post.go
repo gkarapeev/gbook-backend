@@ -50,7 +50,7 @@ func AddComment(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	comment.CreatedAt = createdAt.Unix()
+	comment.CreatedAt = createdAt.Unix() * 1000
 
 	var author m.DbUser
 	authorRow := db.QueryRow("SELECT id, username FROM users WHERE id = $1", comment.AuthorID)
