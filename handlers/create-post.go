@@ -60,32 +60,62 @@ func CreatePost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	now := time.Now()
 
-	// Check if image is present
 	imagePresent := false
+	var imageBuf *bytes.Buffer
+	var imgTempPath string
 	file, _, imgErr := r.FormFile("image")
+
 	if imgErr == nil && file != nil {
+		defer file.Close()
 		imagePresent = true
+
+		imageBuf = &bytes.Buffer{}
+		_, err := io.Copy(imageBuf, file)
+		if err != nil {
+			log.Println("could not read image file:", err)
+			http.Error(w, "could not read image file: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		imgDir := os.Getenv("ROOT_CONTENT_DIR") + "/post-images"
+		os.MkdirAll(imgDir, 0755)
+		imgTempPath = imgDir + "/temp-" + fmt.Sprintf("%d", now.UnixNano()) + ".jpg"
+
+		if err := saveImage(imgTempPath, bytes.NewReader(imageBuf.Bytes())); err != nil {
+			log.Println("Image save error:", err)
+			http.Error(w, "Image save error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	err = db.QueryRow(
 		"INSERT INTO posts (author_id, host_id, content, image_present, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
 		post.AuthorID, post.HostID, post.Content, imagePresent, now, now,
 	).Scan(&post.ID)
+
 	if err != nil {
 		log.Println("DB error:", err)
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
+
+		if imagePresent && imgTempPath != "" {
+			os.Remove(imgTempPath)
+		}
+
 		return
 	}
 
-	if file != nil {
-		defer file.Close()
+	if imagePresent && imgTempPath != "" {
 		imgDir := os.Getenv("ROOT_CONTENT_DIR") + "/post-images"
 		imgPath := imgDir + "/" + fmt.Sprintf("%d.jpg", post.ID)
-		if err := saveImage(imgPath, file); err != nil {
-			log.Println("Image save error:", err)
-			http.Error(w, "Image save error: "+err.Error(), http.StatusInternalServerError)
+		err := os.Rename(imgTempPath, imgPath)
+
+		if err != nil {
+			log.Println("Image rename error:", err)
+			http.Error(w, "Image rename error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		time.Sleep(100 * time.Millisecond)
 	}
 
 	json.NewEncoder(w).Encode(post)
