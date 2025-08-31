@@ -2,12 +2,12 @@
 ✅ - Feed endpoint<br />
 ✅ - Comments on posts<br />
 ✅ - make possible to request posts by scrolling, aka from some index onwards, aka skip & take<br />
-✅ - Make a get-user request that reutrns the full name and stuff by id. That will allow not fetching the entire registry just to load a profile.
+✅ - Make a get-user request that reutrns the full name and stuff by id<br />
 ✅ - get rid of repeated logic for including the comments in getFeed and GetPostsByUser<br />
+✅ - Migrate to Postgres<br />
+✅ - Also enable TLS on test
 
-🔶 - Migrate to Postgres<br />
 🔶 - implement db migrations
-🔶 - Also enable TLS on test
 
 ## Architecture
 🕙 - implement 3-layered architecture<br />
