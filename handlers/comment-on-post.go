@@ -39,8 +39,8 @@ func AddComment(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	res, err := db.Exec("INSERT INTO post_comments (post_id, author_id, content, created_at) VALUES ($1, $2, $3, $4)",
-		comment.PostID, comment.AuthorID, comment.Content, time.Now().Unix())
+	res, err := db.Exec("INSERT INTO post_comments (post_id, author_id, content) VALUES ($1, $2, $3)",
+		comment.PostID, comment.AuthorID, comment.Content)
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
