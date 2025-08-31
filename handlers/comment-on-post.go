@@ -39,20 +39,18 @@ func AddComment(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	res, err := db.Exec("INSERT INTO post_comments (post_id, author_id, content) VALUES ($1, $2, $3)",
-		comment.PostID, comment.AuthorID, comment.Content)
+	var createdAt time.Time
+	err := db.QueryRow(
+		"INSERT INTO post_comments (post_id, author_id, content) VALUES ($1, $2, $3) RETURNING id, created_at",
+		comment.PostID, comment.AuthorID, comment.Content,
+	).Scan(&comment.ID, &createdAt)
+
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	lastID, err := res.LastInsertId()
-	if err != nil {
-		http.Error(w, "DB error getting last ID: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-	comment.ID = int(lastID)
-	comment.CreatedAt = time.Now().Unix()
+	comment.CreatedAt = createdAt.Unix()
 
 	var author m.DbUser
 	authorRow := db.QueryRow("SELECT id, username FROM users WHERE id = $1", comment.AuthorID)
