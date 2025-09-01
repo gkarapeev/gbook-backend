@@ -10,25 +10,37 @@ import (
 
 func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority int) ([]m.FullPost, error) {
 	postIDs, err := getPostIDs(db, hostID, skip, take)
-
 	if err != nil {
 		return nil, err
 	}
-
 	if len(postIDs) == 0 {
 		return []m.FullPost{}, nil
 	}
 
-	query, args := buildFullPostsQuery(hostID, postIDs)
-	rows, err := db.Query(query, args...)
+	postsMap := make(map[int]*m.FullPost, len(postIDs))
+	var posts []*m.FullPost
 
+	likedPosts, err := getLikedPosts(db, postIDs, likeAuthority)
 	if err != nil {
-		return nil, fmt.Errorf("error executing query: %w", err)
+		return nil, err
 	}
 
-	defer rows.Close()
+	err = getPosts(db, postIDs, postsMap, &posts, likedPosts)
+	if err != nil {
+		return nil, err
+	}
 
-	return scanFullPosts(rows, likeAuthority)
+	err = getPostComments(db, postIDs, postsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	finalPosts := make([]m.FullPost, len(posts))
+	for i, post := range posts {
+		finalPosts[i] = *post
+	}
+
+	return finalPosts, nil
 }
 
 func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
@@ -62,100 +74,107 @@ func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
 	return postIDs, nil
 }
 
-func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
-	args := []interface{}{}
-	placeholders := []string{}
-
-	if hostID != nil {
-		args = append(args, *hostID)
-	}
-
-	offset := 1
-	if hostID != nil {
-		offset = 2
-	}
-
+func getPosts(db *sql.DB, postIDs []int, postsMap map[int]*m.FullPost, postsList *[]*m.FullPost, likedPosts map[int]bool) error {
+	query := `
+        SELECT
+            p.id, p.author_id, p.content, p.created_at, p.image_present,
+            pa.username,
+            p.host_id, hu.username
+        FROM posts p
+        JOIN users pa ON p.author_id = pa.id
+        JOIN users hu ON p.host_id = hu.id
+        WHERE p.id IN (%s)
+        ORDER BY p.id DESC
+    `
+	placeholders := make([]string, len(postIDs))
+	args := make([]interface{}, len(postIDs))
 	for i, id := range postIDs {
-		placeholders = append(placeholders, fmt.Sprintf("$%d", i+offset)) // <-- so ridiculous lol. Sorry I can't write go yet 🐿
-		args = append(args, id)
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
 	}
+	query = fmt.Sprintf(query, strings.Join(placeholders, ","))
 
-	var whereClause string
-	if hostID != nil {
-		whereClause = fmt.Sprintf("p.host_id = $1 AND p.id IN (%s)", strings.Join(placeholders, ","))
-	} else {
-		whereClause = fmt.Sprintf("p.id IN (%s)", strings.Join(placeholders, ","))
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return fmt.Errorf("error executing posts query: %w", err)
 	}
-
-	query := fmt.Sprintf(`
-		SELECT
-			p.id, p.author_id, p.content, p.created_at, p.image_present,
-			pa.id, pa.username,
-			p.host_id, hu.username,
-			c.id, c.post_id, c.author_id, c.content, c.created_at,
-			ca.username,
-			l.id, l.user_id, lu.username
-		FROM posts p
-		JOIN users pa ON p.author_id = pa.id
-		JOIN users hu ON p.host_id = hu.id
-		LEFT JOIN post_comments c ON p.id = c.post_id
-		LEFT JOIN users ca ON c.author_id = ca.id
-		LEFT JOIN post_likes l ON p.id = l.post_id
-		LEFT JOIN users lu ON l.user_id = lu.id
-		WHERE %s
-		ORDER BY p.id DESC, c.created_at, l.created_at ASC
-	`, whereClause)
-
-	return query, args
-}
-
-func scanFullPosts(rows *sql.Rows, likeAuthority int) ([]m.FullPost, error) {
-	postsMap := make(map[int]*m.FullPost)
-	var posts []*m.FullPost
+	defer rows.Close()
 
 	for rows.Next() {
-		var postID, postAuthorID, postHostID, commentID, commentPostID, commentAuthorID sql.NullInt64
-		var postContent, postAuthorUsername, postHostUsername, commentContent, commentAuthorUsername sql.NullString
-		var postCreatedAt, commentCreatedAt sql.NullTime
+		var postID, postAuthorID, postHostID sql.NullInt64
+		var postContent, postAuthorUsername, postHostUsername sql.NullString
+		var postCreatedAt sql.NullTime
 		var postImagePresent sql.NullBool
-		var likeID, likeUserID sql.NullInt64
-		var likeUsername sql.NullString
 
 		if err := rows.Scan(
 			&postID, &postAuthorID, &postContent, &postCreatedAt, &postImagePresent,
-			&postAuthorID, &postAuthorUsername,
+			&postAuthorUsername,
 			&postHostID, &postHostUsername,
-			&commentID, &commentPostID, &commentAuthorID, &commentContent, &commentCreatedAt,
-			&commentAuthorUsername,
-			&likeID, &likeUserID, &likeUsername,
 		); err != nil {
-			return nil, fmt.Errorf("error scanning row: %w", err)
+			return fmt.Errorf("error scanning post row: %w", err)
 		}
 
-		post, ok := postsMap[int(postID.Int64)]
-		if !ok {
-			newPost := &m.FullPost{
-				ID:        int(postID.Int64),
-				Content:   postContent.String,
-				CreatedAt: int(postCreatedAt.Time.Unix() * 1000),
-				Author: m.DbUser{
-					ID:       int(postAuthorID.Int64),
-					BaseUser: m.BaseUser{Username: postAuthorUsername.String},
-				},
-				Host: m.DbUser{
-					ID:       int(postHostID.Int64),
-					BaseUser: m.BaseUser{Username: postHostUsername.String},
-				},
-				ImagePresent: postImagePresent.Bool,
-				Comments:     []m.FullComment{},
-				UserLikesIt:  likeID.Valid && int(likeUserID.Int64) == likeAuthority,
-			}
-			postsMap[int(postID.Int64)] = newPost
-			posts = append(posts, newPost)
-			post = newPost
+		newPost := &m.FullPost{
+			ID:           int(postID.Int64),
+			Content:      postContent.String,
+			CreatedAt:    int(postCreatedAt.Time.Unix() * 1000),
+			ImagePresent: postImagePresent.Bool,
+			Author: m.DbUser{
+				ID:       int(postAuthorID.Int64),
+				BaseUser: m.BaseUser{Username: postAuthorUsername.String},
+			},
+			Host: m.DbUser{
+				ID:       int(postHostID.Int64),
+				BaseUser: m.BaseUser{Username: postHostUsername.String},
+			},
+			Comments:    []m.FullComment{},
+			UserLikesIt: likedPosts[int(postID.Int64)],
+		}
+		postsMap[int(postID.Int64)] = newPost
+		*postsList = append(*postsList, newPost)
+	}
+
+	return rows.Err()
+}
+
+func getPostComments(db *sql.DB, postIDs []int, postsMap map[int]*m.FullPost) error {
+	query := `
+        SELECT
+            c.post_id, c.id, c.author_id, ca.username, c.content, c.created_at
+        FROM post_comments c
+        JOIN users ca ON c.author_id = ca.id
+        WHERE c.post_id IN (%s)
+        ORDER BY c.created_at
+    `
+
+	placeholders := make([]string, len(postIDs))
+	args := make([]interface{}, len(postIDs))
+
+	for i, id := range postIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = id
+	}
+
+	query = fmt.Sprintf(query, strings.Join(placeholders, ","))
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return fmt.Errorf("error executing comments query: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var commentPostID, commentID, commentAuthorID sql.NullInt64
+		var commentAuthorUsername, commentContent sql.NullString
+		var commentCreatedAt sql.NullTime
+
+		if err := rows.Scan(
+			&commentPostID, &commentID, &commentAuthorID, &commentAuthorUsername, &commentContent, &commentCreatedAt,
+		); err != nil {
+			return fmt.Errorf("error scanning comment row: %w", err)
 		}
 
-		if commentID.Valid {
+		if post, ok := postsMap[int(commentPostID.Int64)]; ok {
 			post.Comments = append(post.Comments, m.FullComment{
 				ID:        int(commentID.Int64),
 				PostID:    int(commentPostID.Int64),
@@ -169,14 +188,43 @@ func scanFullPosts(rows *sql.Rows, likeAuthority int) ([]m.FullPost, error) {
 		}
 	}
 
+	return rows.Err()
+}
+
+func getLikedPosts(db *sql.DB, postIDs []int, likeAuthority int) (map[int]bool, error) {
+	likedPosts := make(map[int]bool)
+	query := `
+        SELECT post_id
+        FROM post_likes
+        WHERE user_id = $1 AND post_id IN (%s)
+    `
+	placeholders := make([]string, len(postIDs))
+	args := make([]interface{}, len(postIDs)+1)
+	args[0] = likeAuthority
+	for i, id := range postIDs {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = id
+	}
+
+	query = fmt.Sprintf(query, strings.Join(placeholders, ","))
+
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("error executing liked posts query: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var postID int
+		if err := rows.Scan(&postID); err != nil {
+			return nil, fmt.Errorf("error scanning liked post id: %w", err)
+		}
+		likedPosts[postID] = true
+	}
+
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error during row iteration: %w", err)
+		return nil, fmt.Errorf("error during liked posts row iteration: %w", err)
 	}
 
-	finalPosts := make([]m.FullPost, len(posts))
-	for i, post := range posts {
-		finalPosts[i] = *post
-	}
-
-	return finalPosts, nil
+	return likedPosts, nil
 }
