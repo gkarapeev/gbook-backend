@@ -6,6 +6,12 @@ import (
 )
 
 var allowedOrigins = []string{
+	"https://gbook.lol",
+	"https://www.gbook.lol",
+
+	"http://test.gbook.lol",
+	"http://test.www.gbook.lol",
+
 	"http://localhost:4200",
 	"http://localhost",
 	"http://localhost:80",
