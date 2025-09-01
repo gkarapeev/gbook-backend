@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	m "this_project_id_285410/models"
 	"this_project_id_285410/queries"
 )
 
@@ -29,7 +30,9 @@ func GetFeed(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	posts, err := queries.QueryFullPosts(db, nil, skip, take)
+	user := r.Context().Value("user").(*m.DbUser)
+
+	posts, err := queries.QueryFullPosts(db, nil, skip, take, user.ID)
 
 	if err != nil {
 		http.Error(w, "DB error: "+err.Error(), http.StatusInternalServerError)

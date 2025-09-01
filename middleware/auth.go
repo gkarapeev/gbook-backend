@@ -1,15 +1,19 @@
 package middleware
 
 import (
+	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
+
+	m "this_project_id_285410/models"
 )
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func AuthMiddleware(next http.Handler, db *sql.DB) http.Handler {
 	unprotected := map[string]bool{
 		"/register":   true,
 		"/login":      true,
@@ -56,6 +60,26 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || claims["user_id"] == nil {
+			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+			return
+		}
+
+		userID := int(claims["user_id"].(float64))
+
+		var user m.DbUser
+		err = db.QueryRow(
+			"SELECT id, username FROM users WHERE id = $1",
+			userID,
+		).Scan(&user.ID, &user.Username)
+		if err != nil {
+			http.Error(w, "User not found", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "user", &user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+
 	})
 }

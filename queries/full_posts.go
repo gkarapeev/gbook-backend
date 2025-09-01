@@ -8,7 +8,7 @@ import (
 	m "this_project_id_285410/models"
 )
 
-func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int) ([]m.FullPost, error) {
+func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority int) ([]m.FullPost, error) {
 	postIDs, err := getPostIDs(db, hostID, skip, take)
 
 	if err != nil {
@@ -28,7 +28,7 @@ func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int) ([]m.FullPost, 
 
 	defer rows.Close()
 
-	return scanFullPosts(rows)
+	return scanFullPosts(rows, likeAuthority)
 }
 
 func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
@@ -93,20 +93,23 @@ func buildFullPostsQuery(hostID *int, postIDs []int) (string, []interface{}) {
 			pa.id, pa.username,
 			p.host_id, hu.username,
 			c.id, c.post_id, c.author_id, c.content, c.created_at,
-			ca.username
+			ca.username,
+			l.id, l.user_id, lu.username
 		FROM posts p
 		JOIN users pa ON p.author_id = pa.id
 		JOIN users hu ON p.host_id = hu.id
 		LEFT JOIN post_comments c ON p.id = c.post_id
 		LEFT JOIN users ca ON c.author_id = ca.id
+		LEFT JOIN post_likes l ON p.id = l.post_id
+		LEFT JOIN users lu ON l.user_id = lu.id
 		WHERE %s
-		ORDER BY p.id DESC, c.created_at ASC
+		ORDER BY p.id DESC, c.created_at, l.created_at ASC
 	`, whereClause)
 
 	return query, args
 }
 
-func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
+func scanFullPosts(rows *sql.Rows, likeAuthority int) ([]m.FullPost, error) {
 	postsMap := make(map[int]*m.FullPost)
 	var posts []*m.FullPost
 
@@ -115,6 +118,8 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 		var postContent, postAuthorUsername, postHostUsername, commentContent, commentAuthorUsername sql.NullString
 		var postCreatedAt, commentCreatedAt sql.NullTime
 		var postImagePresent sql.NullBool
+		var likeID, likeUserID sql.NullInt64
+		var likeUsername sql.NullString
 
 		if err := rows.Scan(
 			&postID, &postAuthorID, &postContent, &postCreatedAt, &postImagePresent,
@@ -122,6 +127,7 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 			&postHostID, &postHostUsername,
 			&commentID, &commentPostID, &commentAuthorID, &commentContent, &commentCreatedAt,
 			&commentAuthorUsername,
+			&likeID, &likeUserID, &likeUsername,
 		); err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
@@ -142,6 +148,7 @@ func scanFullPosts(rows *sql.Rows) ([]m.FullPost, error) {
 				},
 				ImagePresent: postImagePresent.Bool,
 				Comments:     []m.FullComment{},
+				UserLikesIt:  likeID.Valid && int(likeUserID.Int64) == likeAuthority,
 			}
 			postsMap[int(postID.Int64)] = newPost
 			posts = append(posts, newPost)

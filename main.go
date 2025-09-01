@@ -68,5 +68,5 @@ func main() {
 	godotenv.Load()
 	port := os.Getenv("PORT")
 	log.Println("Server running on: " + port)
-	http.ListenAndServe(":"+port, middleware.CorsMiddleware(middleware.AuthMiddleware(mux)))
+	http.ListenAndServe(":"+port, middleware.CorsMiddleware(middleware.AuthMiddleware(mux, db)))
 }

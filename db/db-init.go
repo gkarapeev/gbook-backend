@@ -70,5 +70,21 @@ func InitDB() *sql.DB {
 		log.Fatal(err)
 	}
 
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS post_likes (
+			id SERIAL PRIMARY KEY,
+			post_id INTEGER NOT NULL,
+			user_id INTEGER NOT NULL,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+			UNIQUE(post_id, user_id)
+		)
+	`)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return db
 }

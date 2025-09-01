@@ -31,6 +31,12 @@ type FullComment struct {
 	Author    DbUser `json:"author"`
 }
 
+type FullLike struct {
+	ID     int    `json:"id"`
+	PostID int    `json:"postId"`
+	User   DbUser `json:"user"`
+}
+
 type Post struct {
 	ID           int    `json:"id"`
 	HostID       int    `json:"hostId"`
@@ -50,4 +56,5 @@ type FullPost struct {
 	CreatedAt    int           `json:"createdAt"`
 	UpdatedAt    int           `json:"updatedAt"`
 	Comments     []FullComment `json:"comments"`
+	UserLikesIt  bool          `json:"userLikesIt"`
 }

@@ -11,9 +11,8 @@ import (
 	"this_project_id_285410/queries"
 )
 
-// fetchFullPostsByUser gets post IDs for a user and returns full posts using FetchFullPosts
-func fetchFullPostsByUser(db *sql.DB, hostID int, skip int, take int) ([]m.FullPost, error) {
-	return queries.QueryFullPosts(db, &hostID, skip, take)
+func fetchFullPostsByUser(db *sql.DB, hostID int, skip int, take int, userID int) ([]m.FullPost, error) {
+	return queries.QueryFullPosts(db, &hostID, skip, take, userID)
 }
 
 func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -48,7 +47,9 @@ func GetPostsByUser(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	posts, err := fetchFullPostsByUser(db, userID, skip, take)
+	user := r.Context().Value("user").(*m.DbUser)
+
+	posts, err := fetchFullPostsByUser(db, userID, skip, take, user.ID)
 	if err != nil {
 		log.Printf("Error in GetPostsByUser: %v", err)
 		http.Error(w, "An internal server error occurred", http.StatusInternalServerError)
