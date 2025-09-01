@@ -61,6 +61,10 @@ func main() {
 		handlers.AddComment(w, r, db)
 	})
 
+	mux.HandleFunc("/likePost", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LikePost(w, r, db)
+	})
+
 	mux.HandleFunc("/upload-image", func(w http.ResponseWriter, r *http.Request) {
 		handlers.UploadImageHandler(w, r)
 	})

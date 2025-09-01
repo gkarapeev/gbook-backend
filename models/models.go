@@ -31,6 +31,11 @@ type FullComment struct {
 	Author    DbUser `json:"author"`
 }
 
+type FrontendLike struct {
+	PostID int  `json:"postId"`
+	Unlike bool `json:"unlike"`
+}
+
 type FullLike struct {
 	ID     int    `json:"id"`
 	PostID int    `json:"postId"`
