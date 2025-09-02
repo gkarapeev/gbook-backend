@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"image"
+
 	"image/jpeg"
 	"image/png"
 	"io"
 	"net/http"
 	"os"
+
 	"path/filepath"
 
 	"golang.org/x/image/draw"
@@ -117,6 +120,9 @@ func UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Image uploaded and saved as %s", filename)))
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": fmt.Sprintf("Image uploaded and saved as %s", filename),
+	})
 }
