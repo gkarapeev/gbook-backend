@@ -11,7 +11,25 @@ import (
 func GetRegistry(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
-	rows, err := db.Query("SELECT id, username FROM users")
+	user := r.Context().Value("user").(*m.DbUser)
+	if user == nil {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	rows, err := db.Query(`
+		SELECT
+			u.id,
+			u.username,
+			f.status,
+			f.sent_by_user_id
+		FROM
+			users u
+		LEFT JOIN
+			friendships f ON (LEAST(u.id, $1) = f.user_id_1 AND GREATEST(u.id, $1) = f.user_id_2)
+		WHERE
+			u.id != $1
+	`, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -22,14 +40,24 @@ func GetRegistry(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var users []m.DbUser
 
 	for rows.Next() {
-		var user m.DbUser
+		var regUser m.DbUser
+		var status sql.NullString
+		var sentByUserId sql.NullInt64
 
-		if err := rows.Scan(&user.ID, &user.Username); err != nil {
+		if err := rows.Scan(&regUser.ID, &regUser.Username, &status, &sentByUserId); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		users = append(users, user)
+		if status.Valid {
+			regUser.FriendshipStatus = &status.String
+		}
+		if sentByUserId.Valid {
+			sentByID := int(sentByUserId.Int64)
+			regUser.SentByUserID = &sentByID
+		}
+
+		users = append(users, regUser)
 	}
 
 	if err := rows.Err(); err != nil {

@@ -11,8 +11,18 @@ type NewUser struct {
 
 type DbUser struct {
 	BaseUser
-	ID           int    `json:"id"`
-	PasswordHash string `json:"-"`
+	ID               int     `json:"id"`
+	PasswordHash     string  `json:"-"`
+	FriendshipStatus *string `json:"friendshipStatus,omitempty"`
+	SentByUserID     *int    `json:"sentByUserId,omitempty"`
+}
+
+type FriendRequestPayload struct {
+	ReceiverID int `json:"receiverId"`
+}
+
+type CancelFriendRequestPayload struct {
+	OtherUserID int `json:"otherUserId"`
 }
 
 type Comment struct {

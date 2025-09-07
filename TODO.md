@@ -6,8 +6,9 @@
 ✅ - get rid of repeated logic for including the comments in getFeed and GetPostsByUser<br />
 ✅ - Migrate to Postgres<br />
 ✅ - Also enable TLS on test
+✅ - implement db migrations
 
-🔶 - implement db migrations
+🔶 - Add migrations for creating the basic tables - users, etc.
 
 ## Architecture
 🕙 - implement 3-layered architecture<br />
