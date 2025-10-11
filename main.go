@@ -9,15 +9,21 @@ import (
 	"github.com/joho/godotenv"
 
 	"this_project_id_285410/db"
+	"this_project_id_285410/db/migrator"
 	"this_project_id_285410/handlers"
+	"this_project_id_285410/handlers/friendship"
 	"this_project_id_285410/middleware"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db := db.InitDB()
+
+	db, _ := db.OpenDB()
 	defer db.Close()
+
+	migrator.EnsureMigrationsTable(db)
+	migrator.RunAllMigrations(db)
 
 	mux := http.NewServeMux()
 
@@ -43,6 +49,18 @@ func main() {
 
 	mux.HandleFunc("/users/", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetUser(w, r, db)
+	})
+
+	mux.HandleFunc("/send-friend-request", func(w http.ResponseWriter, r *http.Request) {
+		friendship.SendFriendRequest(w, r, db)
+	})
+
+	mux.HandleFunc("/accept-friend-request", func(w http.ResponseWriter, r *http.Request) {
+		friendship.AcceptFriendRequest(w, r, db)
+	})
+
+	mux.HandleFunc("/cancel-friend-request", func(w http.ResponseWriter, r *http.Request) {
+		friendship.CancelFriendRequest(w, r, db)
 	})
 
 	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
