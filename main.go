@@ -13,8 +13,6 @@ import (
 	"this_project_id_285410/handlers"
 	"this_project_id_285410/handlers/friendship"
 	"this_project_id_285410/middleware"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {

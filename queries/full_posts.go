@@ -8,8 +8,8 @@ import (
 	m "this_project_id_285410/models"
 )
 
-func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority int) ([]m.FullPost, error) {
-	postIDs, err := getPostIDs(db, hostID, skip, take, likeAuthority)
+func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, currentUser int) ([]m.FullPost, error) {
+	postIDs, err := getPostIDs(db, hostID, skip, take, currentUser)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +20,7 @@ func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority i
 	postsMap := make(map[int]*m.FullPost, len(postIDs))
 	var posts []*m.FullPost
 
-	likedPosts, err := getLikedPosts(db, postIDs, likeAuthority)
+	likedPosts, err := getLikedPosts(db, postIDs, currentUser)
 	if err != nil {
 		return nil, err
 	}
