@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS are_friends(INT, INT);

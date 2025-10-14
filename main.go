@@ -13,8 +13,6 @@ import (
 	"this_project_id_285410/handlers"
 	"this_project_id_285410/handlers/friendship"
 	"this_project_id_285410/middleware"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -63,9 +61,11 @@ func main() {
 		friendship.CancelFriendRequest(w, r, db)
 	})
 
-	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+	postsHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
 	})
+
+	mux.Handle("/posts", middleware.UserPostsMiddleware(postsHandler, db))
 
 	mux.HandleFunc("/feed", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetFeed(w, r, db)
