@@ -61,9 +61,11 @@ func main() {
 		friendship.CancelFriendRequest(w, r, db)
 	})
 
-	mux.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+	postsHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetPostsByUser(w, r, db)
 	})
+
+	mux.Handle("/posts", middleware.UserPostsMiddleware(postsHandler, db))
 
 	mux.HandleFunc("/feed", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetFeed(w, r, db)
