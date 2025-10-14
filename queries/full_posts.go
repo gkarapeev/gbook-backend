@@ -9,7 +9,7 @@ import (
 )
 
 func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority int) ([]m.FullPost, error) {
-	postIDs, err := getPostIDs(db, hostID, skip, take)
+	postIDs, err := getPostIDs(db, hostID, skip, take, likeAuthority)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func QueryFullPosts(db *sql.DB, hostID *int, skip int, take int, likeAuthority i
 	return finalPosts, nil
 }
 
-func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
+func getPostIDs(db *sql.DB, hostID *int, skip int, take int, currentUserID int) ([]int, error) {
 	var (
 		idRows *sql.Rows
 		err    error
@@ -52,7 +52,16 @@ func getPostIDs(db *sql.DB, hostID *int, skip int, take int) ([]int, error) {
 	if hostID != nil {
 		idRows, err = db.Query(`SELECT id FROM posts WHERE host_id = $1 ORDER BY id DESC LIMIT $2 OFFSET $3`, *hostID, take, skip)
 	} else {
-		idRows, err = db.Query(`SELECT id FROM posts ORDER BY id DESC LIMIT $1 OFFSET $2`, take, skip)
+		idRows, err = db.Query(`
+			SELECT p.id
+			FROM posts p
+			WHERE (
+				p.host_id = $1 OR
+				are_friends(p.host_id, $1)
+			)
+			ORDER BY p.id DESC
+			LIMIT $2 OFFSET $3
+		`, currentUserID, take, skip)
 	}
 
 	if err != nil {
